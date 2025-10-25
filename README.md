@@ -94,9 +94,9 @@ This project is licensed under the **MIT License**. See the `LICENSE` file for d
 
 ## 📸 Screenshots
 
-| Settings Window                       | Example Idle Trigger                |
-| ------------------------------------- | ----------------------------------- |
-| ![Settings](docs/assets/settings.png) | ![Trigger](docs/assets/trigger.png) |
+| Settings Window                       | 
+| ------------------------------------- | 
+| ![Settings](src/Resources/OtexumPulse-ScreenShot.png) | 
 
 ---
 
@@ -105,14 +105,6 @@ This project is licensed under the **MIT License**. See the `LICENSE` file for d
 * The app runs entirely offline and stores all configuration locally.
 * Designed for developers, self-hosters, and users who need automation without cloud dependencies.
 * Idle detection is based on **user input**, not CPU utilization.
-
----
-
-### 🧩 Future Enhancements
-
-* 🔔 Optional notifications when launching apps.
-* 💤 Per-app idle profiles.
-* 🧱 Compact tray icon with live status.
 
 ---
 
