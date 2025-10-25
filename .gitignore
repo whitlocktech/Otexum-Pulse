@@ -1,0 +1,10 @@
+﻿#build
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.ide/
+*.vs/
+#Output folder
+Publish/
