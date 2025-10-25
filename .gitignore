@@ -6,5 +6,4 @@ obj/
 *.cache
 *.ide/
 *.vs/
-#Output folder
 Publish/

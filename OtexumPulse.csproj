@@ -1,11 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
+    <AssemblyName>OtexumPulse</AssemblyName>
+    <RootNamespace>OtexumPulse</RootNamespace>
+
+
+    <ApplicationIcon>src\Resources\app.ico</ApplicationIcon>
+
   </PropertyGroup>
+  <ItemGroup>
+    <Page Remove="src\App.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="src\App.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="src\Resources\" />
+    <Resource Include="src\Resources\app.ico" Condition="Exists('src\Resources\app.ico')" />
+  </ItemGroup>
 
 </Project>
