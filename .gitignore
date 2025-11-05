@@ -7,3 +7,4 @@ obj/
 *.ide/
 *.vs/
 Publish/
+Releases/

@@ -7,25 +7,26 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>OtexumPulse</AssemblyName>
     <RootNamespace>OtexumPulse</RootNamespace>
-
-
     <ApplicationIcon>src\Resources\app.ico</ApplicationIcon>
 
+    <StartupObject>OtexumPulse.App</StartupObject>
   </PropertyGroup>
+
   <ItemGroup>
     <Page Remove="src\App.xaml" />
-  </ItemGroup>
-  <ItemGroup>
-    <ApplicationDefinition Include="src\App.xaml" />
+    <Page Include="src\App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="1.1.0" />
+    <PackageReference Include="Velopack" Version="0.0.1298" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="src\Resources\" />
     <Resource Include="src\Resources\app.ico" Condition="Exists('src\Resources\app.ico')" />
   </ItemGroup>
-
 </Project>

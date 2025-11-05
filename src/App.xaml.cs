@@ -2,31 +2,53 @@
 using OtexumPulse.Models;
 using OtexumPulse.Services;
 using System;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
+using Velopack;
+using Velopack.Sources;
 
 namespace OtexumPulse
 {
     public partial class App : Application
     {
+        [STAThread]
+        private static void Main(string[] args)
+        {
+            // Run Velopack bootstrap before WPF starts
+            VelopackApp.Build().Run();
+
+            var app = new App();
+            app.InitializeComponent();
+            app.Run();
+        }
+
         private System.Threading.Mutex? _mutex;
         private TaskbarIcon? _tray;
         private IdleWatcher? _watcher;
         private AppSettings _settings = new();
         private Views.MainWindow? _window;
 
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             // single instance
             _mutex = new System.Threading.Mutex(false, @"Global\OtexumPulse_Singleton");
-            if (!_mutex.WaitOne(0)) { Shutdown(); return; }
+            if (!_mutex.WaitOne(0))
+            {
+                Shutdown();
+                return;
+            }
 
             _settings = SettingsService.Load();
 
             // tray icon (use app.ico if present; else no icon)
             BitmapImage? iconSource = null;
-            try { iconSource = new BitmapImage(new Uri("pack://application:,,,/src/Resources/app.ico")); } catch { }
+            try
+            {
+                iconSource = new BitmapImage(new Uri("pack://application:,,,/src/Resources/app.ico"));
+            }
+            catch { }
 
             _tray = new TaskbarIcon
             {
@@ -56,9 +78,11 @@ namespace OtexumPulse
             _watcher = new IdleWatcher(_settings);
             _watcher.Start();
 
-            if (!_settings.StartMinimized) ShowSettings();
+            if (!_settings.StartMinimized)
+                ShowSettings();
+
             base.OnStartup(e);
-            
+
             DispatcherUnhandledException += (_, args) =>
             {
                 MessageBox.Show(args.Exception.ToString(), "Otexum Pulse – UI Error");
@@ -69,13 +93,42 @@ namespace OtexumPulse
                 MessageBox.Show(args.ExceptionObject?.ToString() ?? "Unknown", "Otexum Pulse – Unhandled");
             };
 
+            // --- Velopack GitHub update check ---
+            try
+            {
+                var source = new GithubSource(
+                    repoUrl: "https://github.com/whitlocktech/Otexum-Pulse",
+                    accessToken: "",   // leave empty for public repo
+                    prerelease: false  // change to true to include prereleases
+                );
+
+                var mgr = new UpdateManager(source);
+                var info = await mgr.CheckForUpdatesAsync();
+                if (info != null)
+                {
+                    await mgr.DownloadUpdatesAsync(info);
+                    mgr.ApplyUpdatesAndRestart(info);
+                }
+            }
+            catch
+            {
+                // updater errors are ignored so the app keeps running Will Add a small logger function that works in these catch blocks
+            }
         }
 
         private void TogglePause(MenuItem mi)
         {
             if (_watcher == null) return;
-            if (_watcher.IsPaused) { _watcher.Resume(); mi.Header = "Pause Watching"; }
-            else { _watcher.Pause(); mi.Header = "Resume Watching"; }
+            if (_watcher.IsPaused)
+            {
+                _watcher.Resume();
+                mi.Header = "Pause Watching";
+            }
+            else
+            {
+                _watcher.Pause();
+                mi.Header = "Resume Watching";
+            }
         }
 
         private void ShowSettings()
@@ -93,8 +146,10 @@ namespace OtexumPulse
         {
             _settings = s;
             _watcher?.ApplySettings(s);
-            if (_settings.StartWithWindows) StartupManager.Enable();
-            else StartupManager.Disable();
+            if (_settings.StartWithWindows)
+                StartupManager.Enable();
+            else
+                StartupManager.Disable();
         }
 
         private void ExitApp()
