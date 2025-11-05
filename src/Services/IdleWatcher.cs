@@ -10,6 +10,8 @@ namespace OtexumPulse.Services
 {
     public sealed class IdleWatcher : IDisposable
     {
+        private bool _hasTriggered = false;
+        private static readonly TimeSpan ActivityWindow = TimeSpan.FromSeconds(1);
         private const int CheckIntervalSeconds = 60;
         private CancellationTokenSource _cts = new();
         private Task? _loop;
@@ -49,25 +51,43 @@ namespace OtexumPulse.Services
             {
                 try
                 {
-                    if (!IsPaused && File.Exists(_s.ExePath))
+                    if (!IsPaused)
                     {
-                        var idle = WinIdle.GetIdleTime();
-                        if (idle.TotalMinutes >= _s.IdleThresholdMinutes && !IsAppRunning(_s.ExePath))
+                        var exe = _s.ExePath;
+                        if (!string.IsNullOrWhiteSpace(exe) && File.Exists(exe))
                         {
-                            var psi = new ProcessStartInfo
+                            var idle = WinIdle.GetIdleTime();
+
+                            // Any user input → reset the once-per-idle trigger latch
+                            if (idle < ActivityWindow)
+                                _hasTriggered = false;
+
+                            var threshold = TimeSpan.FromMinutes(Math.Max(1, _s.IdleThresholdMinutes));
+
+                            // Fire once per idle stretch, and don’t relaunch if already running
+                            if (!_hasTriggered && idle >= threshold && !IsAppRunning(exe))
                             {
-                                FileName = _s.ExePath,
-                                UseShellExecute = true,
-                                WorkingDirectory = Path.GetDirectoryName(_s.ExePath)!
-                            };
-                            Process.Start(psi);
+                                try
+                                {
+                                    var wd = Path.GetDirectoryName(exe) ?? Environment.CurrentDirectory;
+                                    var psi = new ProcessStartInfo
+                                    {
+                                        FileName = exe,
+                                        UseShellExecute = true,
+                                        WorkingDirectory = wd
+                                    };
+                                    Process.Start(psi);
+                                    _hasTriggered = true; // latch until user activity
+                                }
+                                catch { /* swallow and keep the app alive */ }
+                            }
                         }
                     }
                 }
-                catch { /* keep looping */ }
+                catch { /* never let the loop die */ }
 
                 try { await Task.Delay(TimeSpan.FromSeconds(CheckIntervalSeconds), ct); }
-                catch { }
+                catch { /* cancellation or transient error */ }
             }
         }
     }
